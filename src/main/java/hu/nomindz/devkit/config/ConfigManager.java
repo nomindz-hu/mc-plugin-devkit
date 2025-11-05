@@ -12,7 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class ConfigManager<T> {
     private final JavaPlugin plugin;
     private final String fileName;
-    private final java.util.List<String> defaultsResources;
+    private final List<String> defaultsResources;
     private final String versionKey;
     private final int currentVersion;
     private final Class<T> type;
@@ -28,7 +28,7 @@ public final class ConfigManager<T> {
             JavaPlugin plugin,
             Class<T> type,
             String fileName,
-            java.util.List<String> defaultsResources,
+            List<String> defaultsResources,
             String versionKey,
             int currentVersion,
             ConfigMigration migration,
@@ -41,6 +41,8 @@ public final class ConfigManager<T> {
         this.currentVersion = currentVersion;
         this.migration = migration;
         this.binder = binder;
+
+        this.defaultsResources.add(0, "devkit-config.yml");
     }
 
     /** Load or create the file, run migrations, build typed snapshot. */
@@ -48,7 +50,7 @@ public final class ConfigManager<T> {
         ensureFileExists();
         loadYaml();
         migrateIfNeeded(yaml);
-        this.snapshot = binder.bind(yaml, type); // << AUTOMAGIC
+        this.snapshot = binder.bind(yaml, type);
         plugin.getLogger().info(fileName + " loaded (version " + yaml.getInt(versionKey, currentVersion) + ")");
     }
 
@@ -56,7 +58,7 @@ public final class ConfigManager<T> {
     public synchronized void reload() {
         loadYaml();
         migrateIfNeeded(yaml);
-        this.snapshot = binder.bind(yaml, type); // << AUTOMAGIC
+        this.snapshot = binder.bind(yaml, type);
         listeners.forEach(l -> l.onReload(snapshot));
         plugin.getLogger().info(fileName + " reloaded.");
     }
@@ -74,19 +76,47 @@ public final class ConfigManager<T> {
     }
 
     private void ensureFileExists() {
-        if (!plugin.getDataFolder().exists())
+        if (!plugin.getDataFolder().exists()) {
             plugin.getDataFolder().mkdirs();
+        }
+
         this.file = new File(plugin.getDataFolder(), fileName);
-        if (!file.exists()) {
-            plugin.saveResource(defaultsResources.get(0), false); // copies from jar to data folder
-            plugin.getLogger().info("Created default " + fileName);
+        if (this.file.exists())
+            return;
+
+        for (int i = defaultsResources.size() - 1; i >= 0; i--) {
+            String res = defaultsResources.get(i);
+            try (InputStream in = plugin.getResource(res)) {
+                if (in != null) {
+                    java.nio.file.Files.copy(
+                            in,
+                            this.file.toPath(),
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    plugin.getLogger().info("Saved default config from resource: " + res);
+                    return;
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to save default config from " + res + ": " + e.getMessage());
+            }
+        }
+
+        try {
+            if (this.file.createNewFile()) {
+                plugin.getLogger().info("Created empty config.yml (defaults will be applied in memory)");
+            }
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to create empty config.yml: " + e.getMessage());
         }
     }
 
     private void loadYaml() {
+        if (this.file == null) {
+            throw new IllegalStateException("Config file is null. Did you call ensureFileExists()?");
+        }
+
         this.yaml = new YamlConfiguration();
         try {
-            yaml.load(file);
+            yaml.load(this.file);
         } catch (IOException | InvalidConfigurationException e) {
             throw new RuntimeException("Failed to load " + fileName + ": " + e.getMessage(), e);
         }
