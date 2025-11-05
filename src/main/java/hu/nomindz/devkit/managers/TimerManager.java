@@ -31,10 +31,11 @@ public class TimerManager {
         return instance;
     }
 
-    public <T> TimedTask<T> startTimer(String id, T data, int durationSeconds, Consumer<Integer> onTick, Runnable onComplete) {
+    public <T> TimedTask<T> startTimer(String id, T data, int durationSeconds, Consumer<Integer> onTick,
+            Runnable onComplete, boolean isPersistent) {
         this.stopTimer(id);
 
-        TimedTask<T> task = new TimedTask<T>(id, data, durationSeconds);
+        TimedTask<T> task = new TimedTask<T>(id, data, durationSeconds, isPersistent);
 
         if (onTick != null) {
             task.onTick(onTick);
@@ -53,8 +54,10 @@ public class TimerManager {
 
                 if (!isRunning) {
                     cancel();
-                    activeTasks.remove(id);
                     runningTasks.remove(id);
+                    if (!task.isPersistent()) {
+                        activeTasks.remove(id);
+                    }
                 }
             }
         }.runTaskTimer(this.plugin, 20L, 20L);
@@ -99,13 +102,16 @@ public class TimerManager {
     }
 
     public boolean isRunning(String id) {
-        /* 
+        /*
          * TODO
-         * shouldn't it be runningTasks instead? currently my thought behind this is that:
-         * when we call startTimer then the timer gonna be set in activeTasks first so the next call
-         * on isRunning is possibly better to return what got added to activeTasks, not runningTasks.
+         * shouldn't it be runningTasks instead? currently my thought behind this is
+         * that:
+         * when we call startTimer then the timer gonna be set in activeTasks first so
+         * the next call
+         * on isRunning is possibly better to return what got added to activeTasks, not
+         * runningTasks.
          * Could be I'm all wrong here, will see what fits best.
-        */
+         */
         return this.activeTasks.containsKey(id);
     }
 

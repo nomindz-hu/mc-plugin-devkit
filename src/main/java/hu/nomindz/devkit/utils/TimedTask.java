@@ -6,6 +6,7 @@ public class TimedTask<T> {
     private final String id;
     private final T data;
     private final int initialDuration;
+    private final boolean isPersistent;
     private int remainingSeconds;
     private boolean cancelled;
 
@@ -13,12 +14,13 @@ public class TimedTask<T> {
     private Runnable onComplete;
     private Runnable onCancel;
 
-    public TimedTask(String id, T data, int initialDuration) {
+    public TimedTask(String id, T data, int initialDuration, boolean isPersistent) {
         this.id = id;
         this.data = data;
         this.initialDuration = initialDuration;
         this.remainingSeconds = initialDuration;
         this.cancelled = false;
+        this.isPersistent = isPersistent;
     }
 
     public TimedTask<T> onTick(Consumer<Integer> onTick) {
@@ -91,6 +93,10 @@ public class TimedTask<T> {
     }
 
     public boolean isCancelled() {
-        return !this.cancelled;
+        return this.cancelled;
+    }
+
+    public boolean isPersistent() {
+        return this.isPersistent;
     }
 }
