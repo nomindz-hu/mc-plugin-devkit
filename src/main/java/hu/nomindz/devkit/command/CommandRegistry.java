@@ -59,9 +59,14 @@ public final class CommandRegistry {
               need = have;
 
             if (have < need) {
-              sender.sendMessage(ChatColor.RED + "Missing argument(s) for: " + p.name());
-              sendUsage(sender, r.node);
-              return true;
+              if(p.optional()) {
+                map.put(p.name(), p.defaultValue());
+                continue;
+              } else {
+                sender.sendMessage(ChatColor.RED + "Missing argument(s) for: " + p.name());
+                sendUsage(sender, r.node);
+                return true;
+              }
             }
             Object val = multi.parse(plugin.getServer(), sender, r.rest, i);
             i += need;
