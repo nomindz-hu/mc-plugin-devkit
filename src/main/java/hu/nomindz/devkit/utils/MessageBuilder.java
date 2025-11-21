@@ -26,7 +26,7 @@ public class MessageBuilder {
     public MessageBuilder addSuccess(String message) {
         TextComponent messageComponent = new TextComponent(message);
         messageComponent.setColor(ChatColor.GREEN);
-        
+
         this.message.addExtra(messageComponent);
         return this;
     }
@@ -49,13 +49,13 @@ public class MessageBuilder {
 
     public MessageBuilder addClickable(String message, ClickEvent action, HoverEvent hover) {
         TextComponent messageComponent = new TextComponent("[" + message + "]");
-        
+
         messageComponent.setColor(ChatColor.AQUA);
         messageComponent.setClickEvent(action);
         messageComponent.setHoverEvent(hover);
-        
+
         this.message.addExtra(messageComponent);
-        
+
         return this;
     }
 
@@ -70,7 +70,7 @@ public class MessageBuilder {
 
                 messageComponent.addExtra(xText);
                 messageComponent.addExtra(", ");
-                
+
                 TextComponent yText = new TextComponent(String.format("%.2f", location.getY()));
                 yText.setColor(ChatColor.GOLD);
 
@@ -92,7 +92,7 @@ public class MessageBuilder {
 
                 messageComponent.addExtra(xText);
                 messageComponent.addExtra(", y: ");
-                
+
                 TextComponent yText = new TextComponent(String.format("%.2f", location.getY()));
                 yText.setColor(ChatColor.GOLD);
 
@@ -120,5 +120,12 @@ public class MessageBuilder {
         errorMessage.setColor(ChatColor.GRAY);
 
         return errorMessage;
+    }
+
+    public MessageBuilder purple(String message, boolean dark) {
+        TextComponent messageComponent = new TextComponent(message);
+        messageComponent.setColor(dark == true ? ChatColor.DARK_PURPLE : ChatColor.LIGHT_PURPLE);
+        this.message.addExtra(messageComponent);
+        return this;
     }
 }
