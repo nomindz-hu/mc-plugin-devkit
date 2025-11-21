@@ -1,5 +1,8 @@
 package hu.nomindz.devkit.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class ConfigFactory {
@@ -20,11 +23,11 @@ public final class ConfigFactory {
             JavaPlugin plugin,
             Class<T> type,
             String fileName,
-            java.util.List<String> defaultsResources,
+            List<String> defaultsResources,
             String versionKey,
             int currentVersion,
             ConfigMigration migration) {
         return new ConfigManager<>(
-                plugin, type, fileName, defaultsResources, versionKey, currentVersion, migration, defaultBinder());
+                plugin, type, fileName, new ArrayList<>(defaultsResources), versionKey, currentVersion, migration, defaultBinder());
     }
 }

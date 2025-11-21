@@ -12,7 +12,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class ConfigManager<T> {
     private final JavaPlugin plugin;
     private final String fileName;
-    private final List<String> defaultsResources;
     private final String versionKey;
     private final int currentVersion;
     private final Class<T> type;
@@ -20,6 +19,7 @@ public final class ConfigManager<T> {
     private final ConfigMigration migration;
     private final List<ConfigListener<T>> listeners = new CopyOnWriteArrayList<>();
 
+    private List<String> defaultsResources;
     private File file;
     private YamlConfiguration yaml;
     private volatile T snapshot;
@@ -36,13 +36,13 @@ public final class ConfigManager<T> {
         this.plugin = plugin;
         this.type = type;
         this.fileName = fileName;
-        this.defaultsResources = defaultsResources;
         this.versionKey = versionKey;
         this.currentVersion = currentVersion;
         this.migration = migration;
         this.binder = binder;
 
-        this.defaultsResources.add(0, "devkit-config.yml");
+        defaultsResources.addFirst("devkit-config.yml");
+        this.defaultsResources = defaultsResources;
     }
 
     /** Load or create the file, run migrations, build typed snapshot. */
